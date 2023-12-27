@@ -80,7 +80,7 @@ writerom: image.bin
 	echo sudo flashrom -p dediprog -w image.bin
 
 netbooturoot:
-	u-root -build=bb -uinitcmd="hostname dl360Gen10" \ 
+	GO111MODULE=off  u-root -build=bb -uinitcmd="hostname dl360Gen10" \ 
 		github.com/u-root/u-root/cmds/core/hostname \
 		github.com/u-root/u-root/cmds/core/init \
 		github.com/u-root/u-root/cmds/core/id \
@@ -94,13 +94,12 @@ netbooturoot:
 		github.com/u-root/u-root/cmds/core/dhclient \
 		github.com/u-root/u-root/cmds/core/rsdp \
 		github.com/u-root/u-root/cmds/boot/*
-	cp /tmp/flashinitramfs.linux_amd64.cpio .
-	lzma -k -f flashinitramfs.linux_amd64.cpio
-	ls -l flashinitramfs*
-	cp *lzma linux/
+	cp /tmp/initramfs.linux_amd64.cpio .
+	lzma -k -f initramfs.linux_amd64.cpio
+	ls -l initramfs*
 
 uroot:
-	u-root -build=bb -uinitcmd="hostname dl360Gen10" \
+	GO111MODULE=off u-root -build=bb -uinitcmd="hostname dl360Gen10" \
 		github.com/u-root/u-root/cmds/core/hostname \
 		github.com/u-root/u-root/cmds/core/dd \
 		github.com/u-root/u-root/cmds/core/init \
@@ -119,26 +118,26 @@ uroot:
 		github.com/u-root/u-root/cmds/core/dhclient \
 		github.com/u-root/u-root/cmds/core/rsdp \
 		github.com/u-root/u-root/cmds/boot/*
-	cp /tmp/initramfs.linux_amd64.cpio flashinitramfs.cpio
-	lzma -k -f flashinitramfs.cpio
-	ls -l flashinitramfs*
-	cp *lzma linux/
-
+	cp /tmp/initramfs.linux_amd64.cpio .
+	lzma -k -f initramfs.linux_amd64.cpio
+	ls -l initramfs*
+	cp *lzma linux
 injectkeys:
 	echo "FIXME: 'injectkeys' got lost; see Makefile.rej!"
 
 bzImage:
-	cp flashkernel.config linux/.config
+	cp config-$(CONFIG) linux/.config
 	(cd linux && make oldconfig && make -j32)
 
 fetch: getkernel geturoot getfiano getrom
 getkernel:
 	rm -rf linux
-	git clone --depth=1 -b v5.15 --single-branch https://github.com/torvalds/linux
-
+	wget -O kernel.xz https://cdn.kernel.org/pub/linux/kernel/v$(MAJOR).x/linux-$(STABLE).tar.xz
+	xzcat kernel.xz | tar x
+	mv linux-$(STABLE) linux
 getfiano:
-	go get -u github.com/linuxboot/fiano/cmds/utk
-	go install github.com/linuxboot/fiano/cmds/utk
+	GO111MODULE=off go get -u github.com/linuxboot/fiano/cmds/utk
+	GO111MODULE=off go install github.com/linuxboot/fiano/cmds/utk
 getrom:
 	@echo If you plan to flash to hardware,
 	@echo you will need to get a rom imagei
@@ -149,5 +148,5 @@ getrom:
 	@echo and run that kernel via qemu
 
 geturoot:
-	go get -v -u github.com/u-root/u-root
+	GO111MODULE=off go get -u github.com/u-root/u-root
 

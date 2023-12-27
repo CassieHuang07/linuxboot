@@ -1,5 +1,5 @@
 MAJOR ?= 5
-STABLE = $(MAJOR).4
+STABLE = $(MAJOR).15
 CONFIG ?= $(MAJOR).4.0
 default: build
 
@@ -43,7 +43,7 @@ cpukernel: cpu.cpio.lzma cpu.config
 # It depends on the kernel setting the IP address.
 # You need ip=dhcp OR ip=fixed.ip.address.here in the command line
 cpu.cpio.lzma: Makefile
-	u-root -o cpu.cpio -build=bb -initcmd=cpud -files ~/.ssh/cpu_rsa.pub:key.pub \
+	GO111MODULE=off u-root -o cpu.cpio -build=bb -initcmd=cpud -files ~/.ssh/cpu_rsa.pub:key.pub \
 		-defaultsh="" \
 		github.com/u-root/cpu/cmds/cpud
 	lzma -f -k cpu.cpio
@@ -70,24 +70,25 @@ netbooturoot:
 	cp *lzma linux
 
 uroot:
-	u-root -build=bb github.com/u-root/u-root/cmds/core/init github.com/u-root/u-root/cmds/exp/rush github.com/u-root/u-root/cmds/core/ls github.com/u-root/u-root/cmds/core/ip   github.com/u-root/u-root/cmds/core/elvish    github.com/u-root/u-root/cmds/core/sshd    github.com/u-root/u-root/cmds/core/scp
-	cp /tmp/initramfs.linux_amd64.cpio flashinitramfs.cpio
-	lzma -k -f flashinitramfs.cpio
-	ls -l flashinitramfs*
-	cp *lzma linux/
+	GO111MODULE=off u-root -build=bb github.com/u-root/u-root/cmds/core/init github.com/u-root/u-root/cmds/exp/rush github.com/u-root/u-root/cmds/core/ls github.com/u-root/u-root/cmds/core/ip   github.com/u-root/u-root/cmds/core/elvish    github.com/u-root/u-root/cmds/core/sshd    github.com/u-root/u-root/cmds/core/scp
+	cp /tmp/initramfs.linux_amd64.cpio .
+	lzma -k -f initramfs.linux_amd64.cpio
+	ls -l initramfs*
+	cp *lzma linux
 
 bzImage:
-	cp flashkernel.config linux/.config
+	cp config-$(CONFIG) linux/.config
 	(cd linux && make oldconfig && make -j32)
 
 fetch: getkernel geturoot getfiano getrom
 getkernel:
 	rm -rf linux
-	git clone --depth=1 -b v5.15 --single-branch https://github.com/torvalds/linux
-
+	wget -O kernel.xz https://cdn.kernel.org/pub/linux/kernel/v$(MAJOR).x/linux-$(STABLE).tar.xz
+	xzcat kernel.xz | tar x
+	mv linux-$(STABLE) linux
 getfiano:
-	go get -u github.com/linuxboot/fiano/cmds/utk
-	go install github.com/linuxboot/fiano/cmds/utk
+	GO111MODULE=off go get -u github.com/linuxboot/fiano/cmds/utk
+	GO111MODULE=off go install github.com/linuxboot/fiano/cmds/utk
 getrom:
 	@echo If you plan to flash to hardware,
 	@echo you will need to get a rom image
@@ -98,5 +99,5 @@ getrom:
 	@echo and run that kernel via qemu
 
 geturoot:
-	go get -u github.com/u-root/u-root
+	GO111MODULE=off go get -u github.com/u-root/u-root
 
