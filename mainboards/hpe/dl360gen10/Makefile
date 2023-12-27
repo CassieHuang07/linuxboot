@@ -1,5 +1,5 @@
 MAJOR ?= 5
-STABLE = $(MAJOR).4
+STABLE = $(MAJOR).15
 CONFIG ?= $(MAJOR).4.0
 KEYPATH ?= ""
 
