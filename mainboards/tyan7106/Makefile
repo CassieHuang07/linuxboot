@@ -49,9 +49,9 @@ bzImage:
 
 fetch:
 	rm -rf linux
-	wget -O kernel.xz https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.111.tar.xz
+	wget -O kernel.xz https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.15.2.tar.xz
 	xzcat kernel.xz | tar x
-	mv linux-4.14.111 linux
+	mv linux-5.15.2 linux
 	go get -u github.com/linuxboot/fiano/cmds/utk
 	wget ftp://ftp.tyan.com/bios/S7106GM2NR-L2_v204.zip
 	unzip S7106GM2NR-L2_v204.zip
